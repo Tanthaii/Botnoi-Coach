@@ -20,7 +20,7 @@ const interviewers: Interviewer[] = [
     title: 'Kind HR from the Big Company',
     company: 'Big Company',
     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&fit=crop&q=80'
+    avatarUrl: 'https://i.ibb.co/Jk3L6Ld/interviewer1.png'
   },
   {
     id: '2',
@@ -28,7 +28,7 @@ const interviewers: Interviewer[] = [
     title: 'Kind HR from the Big Company',
     company: 'Big Company',
     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&fit=crop&q=80'
+    avatarUrl: 'https://i.ibb.co/Qf6Hs2k/interviewer2.png'
   },
   {
     id: '3',
@@ -36,7 +36,7 @@ const interviewers: Interviewer[] = [
     title: 'Kind HR from the Big Company',
     company: 'Big Company',
     description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&fit=crop&q=80'
+    avatarUrl: 'https://i.ibb.co/YtQVBf4/interviewer3.png'
   }
 ];
 
