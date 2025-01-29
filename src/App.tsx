@@ -3,6 +3,8 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Bot, ArrowRight } from 'lucide-react';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import PersonalInfo from './pages/PersonalInfo';
+import ChooseInterviewer from './pages/ChooseInterviewer';
 import './styles/App.css';
 
 function Home() {
@@ -54,6 +56,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/personal-info" element={<PersonalInfo />} />
+      <Route path="/choose-interviewer" element={<ChooseInterviewer />} />
     </Routes>
   );
 }

@@ -31,7 +31,7 @@ export default function Signup() {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate('/'); // Redirect to home page after successful signup
+      navigate('/personal-info'); // Navigate to personal info page after successful signup
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('Email already in use');

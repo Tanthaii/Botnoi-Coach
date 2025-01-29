@@ -16,7 +16,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/'); // Redirect to home page after successful login
+      navigate('/choose-interviewer'); // Redirect to choose interviewer page after successful login
     } catch (err) {
       setError('Invalid email or password');
       console.error(err);
