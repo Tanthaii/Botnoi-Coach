@@ -78,11 +78,8 @@ export default function Pricing() {
           {/* Plus Plan */}
           <div className="group relative w-[313px] h-[481px] bg-[#010614]/50 rounded-[20px] p-8 border-transparent hover:border-[#22D3EE]/30 border backdrop-blur-sm transition-colors duration-300">
             <div className="absolute inset-0 bg-gradient-to-b from-[#22D3EE]/[0.08] to-transparent rounded-[20px] pointer-events-none"></div>
-            <div className="absolute -top-px left-0 right-0 h-[2px] bg-gradient-to-r from-[#22D3EE] to-[#34D399] rounded-t-[20px]"></div>
             
-            <div className="absolute -top-3 right-8 px-3 py-1 bg-gradient-to-r from-[#22D3EE] to-[#34D399] rounded-full text-xs font-semibold text-white">
-              RECOMMENDED
-            </div>
+            
 
             <h3 className="text-2xl font-semibold text-white mb-2">BOTNOI Coach Plus</h3>
             <div className="flex items-baseline mb-8">
@@ -118,24 +115,9 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-24 max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-semibold text-white mb-4">Frequently Asked Questions</h2>
-          <div className="space-y-6 text-left">
-            <div>
-              <h3 className="text-white font-medium mb-2">Can I switch plans later?</h3>
-              <p className="text-gray-400">Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.</p>
-            </div>
-            <div>
-              <h3 className="text-white font-medium mb-2">What payment methods do you accept?</h3>
-              <p className="text-gray-400">We accept all major credit cards, debit cards, and digital payment methods.</p>
-            </div>
-            <div>
-              <h3 className="text-white font-medium mb-2">Is there a refund policy?</h3>
-              <p className="text-gray-400">Yes, we offer a 7-day money-back guarantee if you're not satisfied with our service.</p>
-            </div>
-          </div>
-        </div>
+      
+        
+         
       </main>
     </div>
   );
