@@ -84,7 +84,7 @@
 }
 
 .main-content {
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -101,23 +101,16 @@
 }
 
 .interviewers-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(318px, 1fr));
   gap: 1.5rem;
-  justify-content: center;
   margin-bottom: 2rem;
   padding: 0.5rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.interviewers-grid::-webkit-scrollbar {
-  display: none;
+  justify-items: center;
 }
 
 .interviewer-card {
   width: 318px;
-  height: 411px;
   background: rgba(2, 6, 23, 0.5);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -126,8 +119,6 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -194,7 +185,8 @@
 
 .add-interviewer-card {
   width: 318px;
-  height: 411px;
+  height: 100%;
+  min-height: 411px;
   background: rgba(2, 6, 23, 0.5);
   backdrop-filter: blur(10px);
   border: 2px dashed rgba(255, 255, 255, 0.2);
@@ -204,7 +196,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .add-interviewer-card:hover {
@@ -229,57 +220,59 @@
 
 .job-title-section {
   margin-bottom: 2rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .section-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  background: linear-gradient(to right, #22d3ee, #34d399);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #22d3ee;
   text-align: center;
 }
 
 .job-title-input {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  display: block;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: white;
+  background: white;
+  border: none;
+  border-radius: 6.25rem;
+  color: #1f2937;
   font-size: 1rem;
   transition: all 0.2s;
 }
 
 .job-title-input:focus {
   outline: none;
-  border-color: #22d3ee;
   box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+}
+
+.job-title-input::placeholder {
+  color: #9ca3af;
 }
 
 .start-interview-button {
   display: block;
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+  max-width: 200px;
+  margin: 2rem auto 0;
   padding: 0.75rem;
   background: linear-gradient(to right, #22d3ee, #34d399);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 6.25rem;
   color: white;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 
 .start-interview-button:hover:not(:disabled) {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.25);
 }
 
 .start-interview-button:disabled {
