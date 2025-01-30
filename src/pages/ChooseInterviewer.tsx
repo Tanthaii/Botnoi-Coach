@@ -156,7 +156,10 @@ export default function ChooseInterviewer() {
             </div>
           ))}
 
-          <div className="add-interviewer-card">
+          <div 
+            className="add-interviewer-card"
+            onClick={() => navigate('/pricing')}
+          >
             <div className="add-icon-wrapper">
               <Plus className="add-icon" />
             </div>

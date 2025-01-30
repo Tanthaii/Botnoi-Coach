@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import PersonalInfo from './pages/PersonalInfo';
 import ChooseInterviewer from './pages/ChooseInterviewer';
+import Pricing from './pages/Pricing';
 import './styles/App.css';
 
 function Home() {
@@ -58,8 +59,9 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/personal-info" element={<PersonalInfo />} />
       <Route path="/choose-interviewer" element={<ChooseInterviewer />} />
+      <Route path="/pricing" element={<Pricing />} />
     </Routes>
   );
 }
 
-export default App;
+export default App
