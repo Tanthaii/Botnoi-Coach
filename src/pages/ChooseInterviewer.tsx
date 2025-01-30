@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Crown, ChevronDown, Plus } from 'lucide-react';
+import { Bot, Crown, ChevronDown, Plus, LogOut } from 'lucide-react';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import '../styles/ChooseInterviewer.css';
 
 interface Interviewer {
@@ -11,6 +13,12 @@ interface Interviewer {
   description: string;
   avatarUrl: string;
   isPremium?: boolean;
+}
+
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 const interviewers: Interviewer[] = [
@@ -43,18 +51,44 @@ const interviewers: Interviewer[] = [
 export default function ChooseInterviewer() {
   const [selectedInterviewer, setSelectedInterviewer] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState('');
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
-  const user = {
-    name: 'Name Lastname',
-    email: 'Email@gmail.com'
-  };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Fetch user data from Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setUserData({
+            firstName: userDoc.data().firstName,
+            lastName: userDoc.data().lastName,
+            email: user.email || ''
+          });
+        }
+      } else {
+        navigate('/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleStartInterview = () => {
     if (selectedInterviewer && jobTitle) {
-      // Navigate to interview page with selected interviewer and job title
       navigate(`/interview/${selectedInterviewer}`, { 
         state: { jobTitle, interviewer: interviewers.find(i => i.id === selectedInterviewer) }
       });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
@@ -66,16 +100,32 @@ export default function ChooseInterviewer() {
           <span className="nav-logo-text">COACH</span>
         </div>
         
-        <div className="user-profile">
-          <div className="user-avatar">
-            {user.name.charAt(0)}
+        {userData && (
+          <div className="user-profile-container">
+            <div 
+              className="user-profile"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <div className="user-avatar">
+                {userData.firstName.charAt(0)}
+              </div>
+              <div className="user-info">
+                <span className="user-name">{`${userData.firstName} ${userData.lastName}`}</span>
+                <span className="user-email">{userData.email}</span>
+              </div>
+              <ChevronDown className="dropdown-icon" />
+            </div>
+            
+            {showDropdown && (
+              <div className="user-dropdown">
+                <button className="dropdown-item" onClick={handleLogout}>
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
           </div>
-          <div className="user-info">
-            <span className="user-name">{user.name}</span>
-            <span className="user-email">{user.email}</span>
-          </div>
-          <ChevronDown className="dropdown-icon" />
-        </div>
+        )}
       </nav>
 
       <main className="main-content">
