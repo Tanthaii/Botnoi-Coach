@@ -39,8 +39,8 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <div className="flex justify-center gap-8 flex-wrap">
           {/* Free Plan */}
-          <div className="group relative w-[313px] h-[481px] bg-[#010614]/50 rounded-[20px] p-8 border border-transparent hover:border-[#22D3EE]/30 transition-all duration-300 hover:transform hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent rounded-[20px] pointer-events-none group-hover:from-white/[0.08]"></div>
+          <div className="group relative w-[313px] h-[481px] bg-[#010614]/50 rounded-[20px] p-8 border border-transparent hover:border-[#22D3EE] transition-all duration-300 hover:transform hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#22D3EE]/[0.08] to-transparent rounded-[20px] pointer-events-none group-hover:from-[#22D3EE]/[0.15]"></div>
             
             <h3 className="text-2xl font-semibold text-white mb-2">Free</h3>
             <div className="flex items-baseline mb-8">
@@ -70,7 +70,10 @@ export default function Pricing() {
               </div>
             </div>
 
-            <button className="absolute bottom-8 left-8 right-8 py-3 rounded-full bg-white/5 text-white border border-transparent group-hover:border-[#22D3EE]/30 font-semibold transition-all duration-300 hover:bg-[#22D3EE]/10">
+            <button className="absolute bottom-8 left-8 right-8 py-3 rounded-full bg-white/5 text-white border border-transparent group-hover:border-[#22D3EE]/30 font-semibold transition-all duration-300 
+hover:bg-gradient-to-r hover:from-[#20C5DE] hover:to-[#30C58D] hover:shadow-lg hover:shadow-[#22D3EE]/20"
+
+            >
               Your current plan
             </button>
           </div>
@@ -107,7 +110,11 @@ export default function Pricing() {
               </div>
             </div>
 
-            <button className="absolute bottom-8 left-8 right-8 py-3 rounded-full bg-gradient-to-r from-[#22D3EE] to-[#34D399] text-white font-semibold transition-all duration-300 hover:from-[#20C5DE] hover:to-[#30C58D] hover:shadow-lg hover:shadow-[#22D3EE]/20">
+            <button 
+              onClick={() => navigate('/payment')}
+              className="absolute bottom-8 left-8 right-8 py-3 rounded-full bg-white/5 text-white border border-transparent group-hover:border-[#22D3EE]/30 font-semibold transition-all duration-300 
+hover:bg-gradient-to-r hover:from-[#20C5DE] hover:to-[#30C58D] hover:shadow-lg hover:shadow-[#22D3EE]/20"
+            >
               Get Plus
             </button>
           </div>
