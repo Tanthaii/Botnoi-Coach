@@ -96,13 +96,13 @@ export default function Interview() {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error in chat:', error);
-      const errorMessage = {
+      const errorBotMessage = {
         id: (Date.now() + 1).toString(),
         text: 'ขออภัยครับ มีปัญหาในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
         sender: 'bot' as const,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorBotMessage]);
     } finally {
       setIsLoading(false);
     }
