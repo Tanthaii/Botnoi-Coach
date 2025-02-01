@@ -77,8 +77,15 @@ export default function ChooseInterviewer() {
 
   const handleStartInterview = () => {
     if (selectedInterviewer && jobTitle) {
-      navigate(`/interview/${selectedInterviewer}`, { 
-        state: { jobTitle, interviewer: interviewers.find(i => i.id === selectedInterviewer) }
+      const interviewer = interviewers.find(i => i.id === selectedInterviewer);
+      navigate('/interview', { 
+        state: { 
+          interviewer,
+          jobTitle,
+          firstName: userData?.firstName,
+          lastName: userData?.lastName,
+          email: userData?.email
+        }
       });
     }
   };

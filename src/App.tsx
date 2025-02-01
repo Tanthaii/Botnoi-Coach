@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import PersonalInfo from './pages/PersonalInfo';
 import ChooseInterviewer from './pages/ChooseInterviewer';
+import Interview from './pages/Interview';
 import Pricing from './pages/Pricing';
 import Payment from './pages/Payment';
 import './styles/App.css';
@@ -60,6 +61,7 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/personal-info" element={<PersonalInfo />} />
       <Route path="/choose-interviewer" element={<ChooseInterviewer />} />
+      <Route path="/interview" element={<Interview />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/payment" element={<Payment />} />
     </Routes>
