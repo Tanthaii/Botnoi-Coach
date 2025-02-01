@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bot, Home, History, Send, Mic, Plus } from 'lucide-react';
+import { Bot, Home, History, Send, Mic, Plus, ChevronDown } from 'lucide-react';
 import { generateResponse, evaluateResponse } from '../lib/ai';
 
 interface Message {
@@ -18,10 +18,12 @@ export default function Interview() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const interviewer = location.state?.interviewer;
   const jobTitle = location.state?.jobTitle;
   const userName = location.state?.firstName || 'User';
+  const userEmail = location.state?.email || 'user@example.com';
 
   useEffect(() => {
     if (!interviewer || !jobTitle) {
@@ -164,15 +166,29 @@ export default function Interview() {
             <span className="text-sm text-gray-400">28 January 2025</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-2">
+            <div 
+              className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-2 cursor-pointer hover:bg-white/10 transition-colors relative"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
               <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
                 {location.state?.firstName?.[0] || 'U'}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm text-white">{location.state?.firstName || 'User'}</span>
-                <span className="text-xs text-gray-400">{location.state?.email || 'user@example.com'}</span>
+                <span className="text-xs text-gray-400">{userEmail}</span>
               </div>
+              <ChevronDown className="w-4 h-4 text-gray-400" />
             </div>
+            {showDropdown && (
+              <div className="absolute top-16 right-4 bg-[#010614]/95 border border-white/10 rounded-lg shadow-lg py-1 min-w-[200px]">
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="w-full px-4 py-2 text-left text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  Profile
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

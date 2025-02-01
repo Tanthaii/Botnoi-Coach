@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Crown, ChevronDown, Plus, LogOut } from 'lucide-react';
+import { Bot, Crown, ChevronDown, Plus, LogOut, User } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import '../styles/ChooseInterviewer.css';
@@ -125,6 +125,13 @@ export default function ChooseInterviewer() {
             
             {showDropdown && (
               <div className="user-dropdown">
+                <button 
+                  className="dropdown-item" 
+                  onClick={() => navigate('/profile')}
+                >
+                  <User size={16} />
+                  <span>Profile</span>
+                </button>
                 <button className="dropdown-item" onClick={handleLogout}>
                   <LogOut size={16} />
                   <span>Logout</span>

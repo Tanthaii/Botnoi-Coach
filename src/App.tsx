@@ -8,6 +8,7 @@ import ChooseInterviewer from './pages/ChooseInterviewer';
 import Interview from './pages/Interview';
 import Pricing from './pages/Pricing';
 import Payment from './pages/Payment';
+import Profile from './pages/Profile';
 import './styles/App.css';
 
 function Home() {
@@ -64,8 +65,9 @@ function App() {
       <Route path="/interview" element={<Interview />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/payment" element={<Payment />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }
 
-export default App
+export default App;
