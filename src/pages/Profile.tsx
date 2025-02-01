@@ -97,7 +97,10 @@ export default function Profile() {
             <div className="flex-1 p-8">
               <div className="flex justify-between items-center mb-8">
                 <h1 className="text-2xl font-semibold text-white">Profile</h1>
-                <button className="text-[#22D3EE]">
+                <button 
+                  className="text-[#22D3EE]"
+                  onClick={() => navigate('/edit-profile')}
+                >
                   <Pencil size={20} />
                 </button>
               </div>

@@ -9,6 +9,7 @@ import Interview from './pages/Interview';
 import Pricing from './pages/Pricing';
 import Payment from './pages/Payment';
 import Profile from './pages/Profile';
+import EditProfile from './pages/EditProfile';
 import './styles/App.css';
 
 function Home() {
@@ -66,6 +67,7 @@ function App() {
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/payment" element={<Payment />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/edit-profile" element={<EditProfile />} />
     </Routes>
   );
 }
