@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bot, Home, History, Send, Mic } from 'lucide-react';
+import { Bot, Home, History, Send, Mic, Plus } from 'lucide-react';
 import { generateResponse, evaluateResponse } from '../lib/ai';
 
 interface Message {
@@ -30,7 +30,7 @@ export default function Interview() {
     }
 
     // Add initial greeting message
-    const initialGreeting = `สวัสดีครับ คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเราครับ ผมชื่อ ${interviewer.name} เป็น HR ของบริษัท ABC วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${jobTitle} ที่คุณสมัครมาครับ ช่วยเล่าเกี่ยวกับประสบการณ์ของคุณให้ฟังหน่อยครับ`;
+    const initialGreeting = `สวัสดีครับ คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเราครับ ผมชื่อ ${interviewer.name} เป็น HR ของบริษัท ABC วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง Front-End Developer ที่คุณสมัครมาครับ พร้อมเริ่มหรือยังครับ?`;
     
     const initialMessage = {
       id: '1',
@@ -64,26 +64,22 @@ export default function Interview() {
     setIsLoading(true);
 
     try {
-      // Convert messages to format expected by Typhoon API
       const messageHistory = messages.map(msg => ({
         role: msg.sender === 'bot' ? 'assistant' : 'user',
         content: msg.text
       }));
 
-      // Add the latest user message
       messageHistory.push({
         role: 'user',
         content: inputMessage
       });
 
-      // Get evaluation from Gemini
       const evaluation = await evaluateResponse(
         inputMessage,
         messages[messages.length - 1]?.text || '',
         jobTitle
       );
 
-      // Generate response using Typhoon
       const response = await generateResponse(messageHistory, jobTitle);
 
       const botMessage = {
@@ -96,13 +92,13 @@ export default function Interview() {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error in chat:', error);
-      const errorBotMessage = {
+      const errorMessage = {
         id: (Date.now() + 1).toString(),
         text: 'ขออภัยครับ มีปัญหาในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
         sender: 'bot' as const,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorBotMessage]);
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -120,16 +116,16 @@ export default function Interview() {
   };
 
   return (
-    <div className="flex h-screen bg-[#010614]">
+    <div className="flex h-screen bg-gradient-to-b from-[#010614] to-[#083178]">
       {/* Sidebar */}
-      <div className="w-64 bg-[#010614] border-r border-white/10">
+      <div className="w-64 bg-[#010614]/50 backdrop-blur-sm border-r border-white/10">
         <div className="p-4">
           <div className="flex items-center gap-2 mb-8">
             <Bot className="w-8 h-8 text-[#22D3EE]" />
             <span className="text-2xl font-semibold text-white">COACH</span>
           </div>
 
-          <nav className="space-y-4">
+          <nav className="space-y-2">
             <button className="flex items-center gap-3 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5">
               <Home size={20} />
               <span>Home</span>
@@ -151,6 +147,10 @@ export default function Interview() {
                 <span className="text-white font-medium">{interviewer.name}</span>
               </div>
             </div>
+            <button className="flex items-center gap-2 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5">
+              <Plus size={20} />
+              <span>Custom Character</span>
+            </button>
           </div>
         </div>
       </div>
@@ -158,24 +158,36 @@ export default function Interview() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="flex justify-between items-center p-4 border-b border-white/10">
+        <header className="flex justify-between items-center p-4 border-b border-white/10 bg-[#010614]/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-white">{interviewer.name}</h1>
             <span className="text-sm text-gray-400">28 January 2025</span>
           </div>
-          <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-2">
-            <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-              {location.state?.firstName?.[0] || 'U'}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-white">{location.state?.firstName || 'User'}</span>
-              <span className="text-xs text-gray-400">{location.state?.email || 'user@example.com'}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-2">
+              <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
+                {location.state?.firstName?.[0] || 'U'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm text-white">{location.state?.firstName || 'User'}</span>
+                <span className="text-xs text-gray-400">{location.state?.email || 'user@example.com'}</span>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <div className="flex flex-col items-center justify-center mb-8">
+            <img
+              src={interviewer.avatarUrl}
+              alt={interviewer.name}
+              className="w-24 h-24 rounded-full mb-2"
+            />
+            <h2 className="text-2xl font-semibold text-white">{interviewer.name}</h2>
+            <p className="text-gray-400">28 January 2025</p>
+          </div>
+
           {messages.map((message) => (
             <div
               key={message.id}
@@ -190,31 +202,31 @@ export default function Interview() {
                   className="w-10 h-10 rounded-full"
                 />
               )}
-              <div
-                className={`max-w-[80%] p-3 rounded-2xl ${
-                  message.sender === 'bot'
-                    ? 'bg-[#1E1E1E] text-white'
-                    : 'bg-[#22D3EE] text-white ml-auto'
-                }`}
-              >
-                <p className="text-sm">{message.text}</p>
+              <div className="flex flex-col gap-2 max-w-[80%]">
+                <div
+                  className={`p-4 rounded-2xl ${
+                    message.sender === 'bot'
+                      ? 'bg-[#1E1E1E] text-white'
+                      : 'bg-[#22D3EE] text-white ml-auto'
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">{message.text}</p>
+                </div>
+                {message.sender === 'bot' && (
+                  <button className="flex items-center gap-2 text-gray-400 hover:text-[#22D3EE] transition-colors">
+                    <Mic size={16} />
+                    <span className="text-xs">Listen</span>
+                  </button>
+                )}
               </div>
-              {message.sender === 'bot' && (
-                <button className="mt-2">
-                  <Mic 
-                    size={16} 
-                    className="text-gray-400 hover:text-[#22D3EE]"
-                  />
-                </button>
-              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
-        <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-2">
+        <div className="p-4 border-t border-white/10 bg-[#010614]/50 backdrop-blur-sm">
+          <div className="flex items-center gap-2 max-w-4xl mx-auto">
             <div className="flex-1 relative">
               <input
                 type="text"
