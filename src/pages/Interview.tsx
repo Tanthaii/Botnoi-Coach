@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp } from 'lucide-react';
+import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp, Star } from 'lucide-react';
 import { generateResponse, evaluateResponse } from '../lib/ai';
 
 interface Message {
@@ -11,9 +11,28 @@ interface Message {
 }
 
 interface InterviewSummary {
-  rating: number;
-  improvements: string[];
+  overallRating: number;
+  categories: {
+    technicalKnowledge: {
+      score: number;
+      feedback: string[];
+    };
+    communication: {
+      score: number;
+      feedback: string[];
+    };
+    problemSolving: {
+      score: number;
+      feedback: string[];
+    };
+    attitude: {
+      score: number;
+      feedback: string[];
+    };
+  };
   strengths: string[];
+  improvements: string[];
+  nextSteps: string[];
 }
 
 export default function Interview() {
@@ -24,14 +43,55 @@ export default function Interview() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [summary, setSummary] = useState<InterviewSummary>({
-    rating: 4,
-    improvements: [
-      'มีการเล่าเรื่องหรืออธิบายกระบวนการแก้ปัญหาได้ชัดเจนและเป็นขั้นตอนมากขึ้น',
-      'ใช้โอกาสในการฝึกซ้อมสัมภาษณ์กับคนอื่นเพื่อเพิ่มความมั่นใจ'
-    ],
+    overallRating: 4,
+    categories: {
+      technicalKnowledge: {
+        score: 4,
+        feedback: [
+          'แสดงความเข้าใจในเทคโนโลยีที่ใช้ในการพัฒนา Frontend ได้ดี',
+          'สามารถอธิบายประสบการณ์การทำงานกับ React และ TypeScript ได้ชัดเจน',
+          'ควรเพิ่มเติมความรู้เกี่ยวกับ Performance Optimization และ Web Security'
+        ]
+      },
+      communication: {
+        score: 4,
+        feedback: [
+          'สื่อสารได้ชัดเจน ใช้ภาษาเป็นมืออาชีพ',
+          'มีการยกตัวอย่างประกอบการอธิบายได้ดี',
+          'ควรฝึกการสรุปประเด็นให้กระชับมากขึ้น'
+        ]
+      },
+      problemSolving: {
+        score: 3,
+        feedback: [
+          'แสดงให้เห็นกระบวนการคิดและวิเคราะห์ปัญหาได้ดี',
+          'มีการอธิบายวิธีการแก้ปัญหาเป็นขั้นตอน',
+          'ควรเพิ่มการยกตัวอย่างกรณีศึกษาที่เคยแก้ไขปัญหาสำเร็จ'
+        ]
+      },
+      attitude: {
+        score: 5,
+        feedback: [
+          'แสดงความกระตือรือร้นและความสนใจในตำแหน่งงานอย่างชัดเจน',
+          'มีทัศนคติเชิงบวกต่อการเรียนรู้และการพัฒนาตนเอง',
+          'แสดงความเป็นมืออาชีพตลอดการสัมภาษณ์'
+        ]
+      }
+    },
     strengths: [
-      'การสื่อสารและความมั่นใจ:',
-      'เพิ่มคำถามที่สะท้อนถึงความสนใจในบริษัท เช่น โครงการที่กำลังพัฒนา เป้าหมายของทีม หรือโอกาสเติบโตในระยะยาว'
+      'มีความเชี่ยวชาญทางเทคนิคที่ตรงกับความต้องการของตำแหน่ง',
+      'สื่อสารได้ชัดเจนและเป็นมืออาชีพ',
+      'มีทัศนคติที่ดีต่อการทำงานและการพัฒนาตนเอง'
+    ],
+    improvements: [
+      'เพิ่มเติมความรู้ด้าน Performance Optimization',
+      'ฝึกการสรุปประเด็นให้กระชับมากขึ้น',
+      'เพิ่มตัวอย่างกรณีศึกษาที่เคยแก้ไขปัญหาสำเร็จ'
+    ],
+    nextSteps: [
+      'ศึกษาเพิ่มเติมเกี่ยวกับ Web Performance และ Security',
+      'ฝึกซ้อมการสัมภาษณ์เพื่อพัฒนาทักษะการสื่อสาร',
+      'เตรียมตัวอย่างผลงานและกรณีศึกษาให้พร้อม'
     ]
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -167,7 +227,7 @@ export default function Interview() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="text-center mb-12">
@@ -182,44 +242,90 @@ export default function Interview() {
                   </h2>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <svg
+                      <Star
                         key={star}
                         className={`w-6 h-6 ${
-                          star <= summary.rating ? 'text-yellow-400' : 'text-gray-400'
+                          star <= summary.overallRating 
+                            ? 'text-yellow-400 fill-yellow-400' 
+                            : 'text-gray-400'
                         }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      />
                     ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Summary Content */}
-            <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8 mb-8">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                ข้อที่ควรปรับปรุง
-              </h3>
-              <div className="space-y-4 mb-8">
-                {summary.improvements.map((improvement, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <span className="text-gray-400">•</span>
-                    <p className="text-gray-300">{improvement}</p>
+            {/* Categories */}
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              {Object.entries(summary.categories).map(([category, data]) => (
+                <div
+                  key={category}
+                  className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-white capitalize">
+                      {category.replace(/([A-Z])/g, ' $1').trim()}
+                    </h3>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= data.score 
+                              ? 'text-yellow-400 fill-yellow-400' 
+                              : 'text-gray-400'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-2">
+                    {data.feedback.map((item, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-1">•</span>
+                        <p className="text-gray-300 text-sm">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-              <h3 className="text-xl font-semibold text-white mb-4">
-                การถามคำถาม:
-              </h3>
-              <div className="space-y-4">
-                {summary.strengths.map((strength, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <span className="text-gray-400">•</span>
-                    <p className="text-gray-300">{strength}</p>
+            {/* Strengths & Improvements */}
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">จุดเด่น</h3>
+                <div className="space-y-2">
+                  {summary.strengths.map((strength, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-1">+</span>
+                      <p className="text-gray-300 text-sm">{strength}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">สิ่งที่ควรพัฒนา</h3>
+                <div className="space-y-2">
+                  {summary.improvements.map((improvement, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-rose-400 mt-1">!</span>
+                      <p className="text-gray-300 text-sm">{improvement}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Next Steps */}
+            <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-8">
+              <h3 className="text-lg font-semibold text-white mb-4">ขั้นตอนต่อไป</h3>
+              <div className="space-y-2">
+                {summary.nextSteps.map((step, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <span className="text-[#22D3EE] mt-1">→</span>
+                    <p className="text-gray-300 text-sm">{step}</p>
                   </div>
                 ))}
               </div>
