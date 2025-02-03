@@ -193,7 +193,7 @@ function Interview() {
         }]
       }));
     }
-  }, [location.state?.interviewer, location.state?.jobTitle, navigate, userName, chatHistories]);
+  }, [location.state?.interviewer, location.state?.jobTitle, navigate, userName]);
 
   useEffect(() => {
     scrollToBottom();
@@ -206,9 +206,18 @@ function Interview() {
   const handleSwitchInterviewer = async (newInterviewer: Interviewer) => {
     if (newInterviewer.id === currentInterviewer?.id) return;
 
+    // เก็บประวัติการแชทของผู้สัมภาษณ์คนปัจจุบันไว้
+    if (currentInterviewer) {
+      setChatHistories(prev => ({
+        ...prev,
+        [currentInterviewer.id]: currentMessages
+      }));
+    }
+
+    // เปลี่ยนไปใช้ผู้สัมภาษณ์คนใหม่
     setCurrentInterviewer(newInterviewer);
 
-    // Initialize chat history for new interviewer if it doesn't exist
+    // ถ้ายังไม่มีประวัติการแชทกับผู้สัมภาษณ์คนใหม่ ให้สร้างข้อความทักทาย
     if (!chatHistories[newInterviewer.id]) {
       const transitionMessage = {
         id: Date.now().toString(),
@@ -598,7 +607,7 @@ function Interview() {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                placeholder={isLoading ? "กำลังคิดคำตอบ..." : "พิมพ์ข้อความ"}
+                placeholder={isLoading ? "กำลังคิดคำตอบ ..." : "พิมพ์ข้อความ"}
                 disabled={isLoading}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-[#22D3EE] disabled:opacity-50"
               />
