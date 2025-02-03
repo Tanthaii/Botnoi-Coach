@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp, Star, Users } from 'lucide-react';
+import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp, Star } from 'lucide-react';
 import { generateResponse, evaluateResponse } from '../lib/ai';
 
 interface Message {
@@ -8,6 +8,10 @@ interface Message {
   text: string;
   sender: 'bot' | 'user';
   timestamp: Date;
+}
+
+interface ChatHistory {
+  [interviewerId: string]: Message[];
 }
 
 interface Interviewer {
@@ -51,12 +55,11 @@ interface InterviewSummary {
 }
 
 function Interview() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [chatHistories, setChatHistories] = useState<ChatHistory>({});
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showInterviewers, setShowInterviewers] = useState(false);
   const [currentInterviewer, setCurrentInterviewer] = useState<Interviewer | null>(null);
   const [availableInterviewers, setAvailableInterviewers] = useState<Interviewer[]>([]);
   const [isRecording, setIsRecording] = useState(false);
@@ -121,14 +124,19 @@ function Interview() {
     ]
   });
 
+  // Get current chat messages
+  const currentMessages = currentInterviewer 
+    ? chatHistories[currentInterviewer.id] || []
+    : [];
+
   useEffect(() => {
     if (!location.state?.interviewer || !location.state?.jobTitle) {
       navigate('/choose-interviewer');
       return;
     }
 
-    // Set initial interviewer and available interviewers
-    setCurrentInterviewer(location.state.interviewer);
+    const initialInterviewer = location.state.interviewer;
+    setCurrentInterviewer(initialInterviewer);
     setAvailableInterviewers([
       {
         id: '1',
@@ -171,47 +179,53 @@ function Interview() {
       }
     ]);
 
-    // Initial greeting message
-    const initialGreeting = `${location.state.interviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${location.state.interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${location.state.interviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${location.state.interviewer.name} เป็น ${location.state.interviewer.title} ของ${location.state.interviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${location.state.jobTitle} ที่คุณสมัครมา${location.state.interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${location.state.interviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
-    
-    setMessages([{
-      id: '1',
-      text: initialGreeting,
-      sender: 'bot',
-      timestamp: new Date(),
-    }]);
-  }, [location.state?.interviewer, location.state?.jobTitle, navigate, userName]);
+    // Add initial greeting only if no chat history exists
+    if (!chatHistories[initialInterviewer.id]) {
+      const initialGreeting = `${initialInterviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${initialInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${initialInterviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${initialInterviewer.name} เป็น ${initialInterviewer.title} ของ${initialInterviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${location.state.jobTitle} ที่คุณสมัครมา${initialInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${initialInterviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
+      
+      setChatHistories(prev => ({
+        ...prev,
+        [initialInterviewer.id]: [{
+          id: '1',
+          text: initialGreeting,
+          sender: 'bot',
+          timestamp: new Date(),
+        }]
+      }));
+    }
+  }, [location.state?.interviewer, location.state?.jobTitle, navigate, userName, chatHistories]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [currentMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSwitchInterviewer = async (newInterviewer: Interviewer) => {
-    if (newInterviewer.id === currentInterviewer?.id) {
-      setShowInterviewers(false);
-      return;
-    }
+    if (newInterviewer.id === currentInterviewer?.id) return;
 
     setCurrentInterviewer(newInterviewer);
-    setShowInterviewers(false);
 
-    // Add a transition message
-    const transitionMessage = {
-      id: Date.now().toString(),
-      text: `${newInterviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ${newInterviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${newInterviewer.name} เป็น ${newInterviewer.title} จะรับช่วงต่อจากเพื่อนร่วมงาน${newInterviewer.gender === 'male' ? 'นะครับ' : 'นะคะ'} เรามาเริ่มกัน${newInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'}`,
-      sender: 'bot' as const,
-      timestamp: new Date(),
-    };
+    // Initialize chat history for new interviewer if it doesn't exist
+    if (!chatHistories[newInterviewer.id]) {
+      const transitionMessage = {
+        id: Date.now().toString(),
+        text: `${newInterviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ${newInterviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${newInterviewer.name} เป็น ${newInterviewer.title} จะรับช่วงต่อจากเพื่อนร่วมงาน${newInterviewer.gender === 'male' ? 'นะครับ' : 'นะคะ'} เรามาเริ่มกัน${newInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'}`,
+        sender: 'bot' as const,
+        timestamp: new Date(),
+      };
 
-    setMessages(prev => [...prev, transitionMessage]);
+      setChatHistories(prev => ({
+        ...prev,
+        [newInterviewer.id]: [transitionMessage]
+      }));
+    }
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || !currentInterviewer) return;
 
     const userMessage = {
       id: Date.now().toString(),
@@ -220,12 +234,17 @@ function Interview() {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Update chat history for current interviewer
+    setChatHistories(prev => ({
+      ...prev,
+      [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), userMessage]
+    }));
+    
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      const messageHistory = messages.map(msg => ({
+      const messageHistory = currentMessages.map(msg => ({
         role: msg.sender === 'bot' ? 'assistant' : 'user',
         content: msg.text
       }));
@@ -237,14 +256,14 @@ function Interview() {
 
       const evaluation = await evaluateResponse(
         inputMessage,
-        messages[messages.length - 1]?.text || '',
+        currentMessages[currentMessages.length - 1]?.text || '',
         jobTitle || ''
       );
 
       const response = await generateResponse(messageHistory, jobTitle || '');
 
       // Check if this is the last question (10th question)
-      if (messages.filter(m => m.sender === 'bot').length >= 9) {
+      if (currentMessages.filter(m => m.sender === 'bot').length >= 9) {
         setShowSummary(true);
       }
 
@@ -255,7 +274,11 @@ function Interview() {
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      // Update chat history with bot response
+      setChatHistories(prev => ({
+        ...prev,
+        [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), botMessage]
+      }));
     } catch (error) {
       console.error('Error in chat:', error);
       const errorMessage = {
@@ -264,21 +287,15 @@ function Interview() {
         sender: 'bot' as const,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      
+      // Update chat history with error message
+      setChatHistories(prev => ({
+        ...prev,
+        [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), errorMessage]
+      }));
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
   };
 
   if (showSummary) {
@@ -458,59 +475,32 @@ function Interview() {
             </button>
           </nav>
 
-          <div className="mt-8 space-y-2">
-            <div className="relative">
+          <div className="mt-8 space-y-1">
+            {availableInterviewers.map((interviewer) => (
               <button
-                onClick={() => setShowInterviewers(!showInterviewers)}
-                className="w-full p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
+                key={interviewer.id}
+                onClick={() => handleSwitchInterviewer(interviewer)}
+                className={`w-full p-2 flex items-center gap-3 rounded-lg transition-colors ${
+                  interviewer.id === currentInterviewer?.id 
+                    ? 'bg-white/10 text-white' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
               >
-                <div className="flex items-center gap-2">
-                  <Users size={20} className="text-[#22D3EE] group-hover:text-white transition-colors" />
-                  <span className="text-gray-400 group-hover:text-white transition-colors">Switch Interviewer</span>
-                </div>
-              </button>
-
-              {showInterviewers && (
-                <div className="absolute left-0 right-0 mt-2 bg-[#010614]/95 border border-white/10 rounded-lg overflow-hidden">
-                  {availableInterviewers.map((interviewer) => (
-                    <button
-                      key={interviewer.id}
-                      onClick={() => handleSwitchInterviewer(interviewer)}
-                      className={`w-full p-3 flex items-center gap-3 hover:bg-white/5 transition-colors ${
-                        interviewer.id === currentInterviewer?.id ? 'bg-white/10' : ''
-                      }`}
-                    >
-                      <img 
-                        src={interviewer.avatarUrl}
-                        alt={interviewer.name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <div className="text-left">
-                        <p className="text-white text-sm font-medium">{interviewer.name}</p>
-                        <p className="text-gray-400 text-xs">{interviewer.title}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="p-2 bg-white/5 rounded-lg">
-              <div className="flex items-center gap-2">
                 <img 
-                  src={currentInterviewer?.avatarUrl}
-                  alt={currentInterviewer?.name}
-                  className="w-8 h-8 rounded-full"
+                  src={interviewer.avatarUrl}
+                  alt={interviewer.name}
+                  className="w-6 h-6 rounded-full"
                 />
-                <span className="text-white font-medium">{currentInterviewer?.name}</span>
-              </div>
-            </div>
+                <span className="text-sm font-medium">{interviewer.name}</span>
+              </button>
+            ))}
+            
             <button 
               onClick={() => navigate('/pricing')}
-              className="flex items-center gap-2 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5"
+              className="w-full p-2 flex items-center gap-3 text-gray-400 hover:text-white rounded-lg hover:bg-white/5"
             >
-              <Plus size={20} />
-              <span>Custom Character</span>
+              <Plus size={16} />
+              <span className="text-sm font-medium">Custom Character</span>
             </button>
           </div>
         </div>
@@ -563,7 +553,7 @@ function Interview() {
             <p className="text-gray-400">28 January 2025</p>
           </div>
 
-          {messages.map((message) => (
+          {currentMessages.map((message) => (
             <div
               key={message.id}
               className={`flex items-start gap-3 ${
@@ -607,15 +597,15 @@ function Interview() {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 placeholder={isLoading ? "กำลังคิดคำตอบ..." : "พิมพ์ข้อความ"}
                 disabled={isLoading}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-[#22D3EE] disabled:opacity-50"
               />
               <button
-                onClick={toggleRecording}
+                onClick={() => setIsRecording(!isRecording)}
                 disabled={isLoading}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/ 2] ${
+                className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
                   isRecording ? 'text-red-500' : 'text-gray-400 hover:text-[#22D3EE]'
                 } disabled:opacity-50`}
               >
