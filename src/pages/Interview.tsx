@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp, Star } from 'lucide-react';
+import { Bot, Home, History, Send, Mic, Plus, ChevronDown, ThumbsUp, Star, Users } from 'lucide-react';
 import { generateResponse, evaluateResponse } from '../lib/ai';
 
 interface Message {
@@ -50,14 +50,25 @@ interface InterviewSummary {
   nextSteps: string[];
 }
 
-export default function Interview() {
-  const location = useLocation();
-  const navigate = useNavigate();
+function Interview() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [summary, setSummary] = useState<InterviewSummary>({
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showInterviewers, setShowInterviewers] = useState(false);
+  const [currentInterviewer, setCurrentInterviewer] = useState<Interviewer | null>(null);
+  const [availableInterviewers, setAvailableInterviewers] = useState<Interviewer[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const jobTitle = location.state?.jobTitle;
+  const userName = location.state?.firstName || 'User';
+  const userEmail = location.state?.email || 'user@example.com';
+
+  const [summary] = useState<InterviewSummary>({
     overallRating: 4,
     categories: {
       technicalKnowledge: {
@@ -109,31 +120,67 @@ export default function Interview() {
       'เตรียมตัวอย่างผลงานและกรณีศึกษาให้พร้อม'
     ]
   });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  const interviewer = location.state?.interviewer;
-  const jobTitle = location.state?.jobTitle;
-  const userName = location.state?.firstName || 'User';
-  const userEmail = location.state?.email || 'user@example.com';
 
   useEffect(() => {
-    if (!interviewer || !jobTitle) {
+    if (!location.state?.interviewer || !location.state?.jobTitle) {
       navigate('/choose-interviewer');
       return;
     }
 
-    const initialGreeting = `${interviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${interviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${interviewer.name} เป็น ${interviewer.title} ของ${interviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${jobTitle} ที่คุณสมัครมา${interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${interviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
+    // Set initial interviewer and available interviewers
+    setCurrentInterviewer(location.state.interviewer);
+    setAvailableInterviewers([
+      {
+        id: '1',
+        name: 'Mr.Micheal A.',
+        title: 'Senior HR Manager',
+        company: 'Big Company',
+        description: 'ผู้เชี่ยวชาญด้าน HR ที่มีประสบการณ์มากกว่า 10 ปี เน้นการสัมภาษณ์แบบเป็นกันเอง แต่ได้ข้อมูลเชิงลึก',
+        avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2014.png?updatedAt=1738210611709',
+        gender: 'male',
+        personality: {
+          style: 'Friendly and Professional',
+          traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน']
+        }
+      },
+      {
+        id: '2',
+        name: 'Ms.Sabrina J.',
+        title: 'Lead Talent Acquisition',
+        company: 'Big Company',
+        description: 'ผู้เชี่ยวชาญด้านการคัดเลือกบุคลากรไอที มีสไตล์การสัมภาษณ์ที่กระชับ ตรงประเด็น',
+        avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2016.png?updatedAt=1738210355311',
+        gender: 'female',
+        personality: {
+          style: 'Direct and Analytical',
+          traits: ['ตรงไปตรงมา', 'มีเหตุผล', 'เน้นการวิเคราะห์']
+        }
+      },
+      {
+        id: '3',
+        name: 'Mr.James J.',
+        title: 'Technical Recruiter',
+        company: 'Big Company',
+        description: 'ผู้เชี่ยวชาญด้านการสรรหาบุคลากรสายเทคนิค มีพื้นฐานด้านการพัฒนาซอฟต์แวร์',
+        avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2021.png?updatedAt=1738210355419',
+        gender: 'male',
+        personality: {
+          style: 'Technical and Supportive',
+          traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้']
+        }
+      }
+    ]);
+
+    // Initial greeting message
+    const initialGreeting = `${location.state.interviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${location.state.interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${location.state.interviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${location.state.interviewer.name} เป็น ${location.state.interviewer.title} ของ${location.state.interviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${location.state.jobTitle} ที่คุณสมัครมา${location.state.interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${location.state.interviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
     
-    const initialMessage = {
+    setMessages([{
       id: '1',
       text: initialGreeting,
       sender: 'bot',
       timestamp: new Date(),
-    };
-    setMessages([initialMessage]);
-  }, [interviewer, jobTitle, navigate, userName]);
+    }]);
+  }, [location.state?.interviewer, location.state?.jobTitle, navigate, userName]);
 
   useEffect(() => {
     scrollToBottom();
@@ -141,6 +188,26 @@ export default function Interview() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSwitchInterviewer = async (newInterviewer: Interviewer) => {
+    if (newInterviewer.id === currentInterviewer?.id) {
+      setShowInterviewers(false);
+      return;
+    }
+
+    setCurrentInterviewer(newInterviewer);
+    setShowInterviewers(false);
+
+    // Add a transition message
+    const transitionMessage = {
+      id: Date.now().toString(),
+      text: `${newInterviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ${newInterviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${newInterviewer.name} เป็น ${newInterviewer.title} จะรับช่วงต่อจากเพื่อนร่วมงาน${newInterviewer.gender === 'male' ? 'นะครับ' : 'นะคะ'} เรามาเริ่มกัน${newInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'}`,
+      sender: 'bot' as const,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, transitionMessage]);
   };
 
   const handleSendMessage = async () => {
@@ -171,10 +238,10 @@ export default function Interview() {
       const evaluation = await evaluateResponse(
         inputMessage,
         messages[messages.length - 1]?.text || '',
-        jobTitle
+        jobTitle || ''
       );
 
-      const response = await generateResponse(messageHistory, jobTitle);
+      const response = await generateResponse(messageHistory, jobTitle || '');
 
       // Check if this is the last question (10th question)
       if (messages.filter(m => m.sender === 'bot').length >= 9) {
@@ -378,7 +445,10 @@ export default function Interview() {
           </div>
 
           <nav className="space-y-2">
-            <button className="flex items-center gap-3 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5">
+            <button 
+              onClick={() => navigate('/choose-interviewer')}
+              className="flex items-center gap-3 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5"
+            >
               <Home size={20} />
               <span>Home</span>
             </button>
@@ -389,17 +459,56 @@ export default function Interview() {
           </nav>
 
           <div className="mt-8 space-y-2">
+            <div className="relative">
+              <button
+                onClick={() => setShowInterviewers(!showInterviewers)}
+                className="w-full p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors group"
+              >
+                <div className="flex items-center gap-2">
+                  <Users size={20} className="text-[#22D3EE] group-hover:text-white transition-colors" />
+                  <span className="text-gray-400 group-hover:text-white transition-colors">Switch Interviewer</span>
+                </div>
+              </button>
+
+              {showInterviewers && (
+                <div className="absolute left-0 right-0 mt-2 bg-[#010614]/95 border border-white/10 rounded-lg overflow-hidden">
+                  {availableInterviewers.map((interviewer) => (
+                    <button
+                      key={interviewer.id}
+                      onClick={() => handleSwitchInterviewer(interviewer)}
+                      className={`w-full p-3 flex items-center gap-3 hover:bg-white/5 transition-colors ${
+                        interviewer.id === currentInterviewer?.id ? 'bg-white/10' : ''
+                      }`}
+                    >
+                      <img 
+                        src={interviewer.avatarUrl}
+                        alt={interviewer.name}
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <div className="text-left">
+                        <p className="text-white text-sm font-medium">{interviewer.name}</p>
+                        <p className="text-gray-400 text-xs">{interviewer.title}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="p-2 bg-white/5 rounded-lg">
               <div className="flex items-center gap-2">
                 <img 
-                  src={interviewer.avatarUrl}
-                  alt={interviewer.name}
+                  src={currentInterviewer?.avatarUrl}
+                  alt={currentInterviewer?.name}
                   className="w-8 h-8 rounded-full"
                 />
-                <span className="text-white font-medium">{interviewer.name}</span>
+                <span className="text-white font-medium">{currentInterviewer?.name}</span>
               </div>
             </div>
-            <button className="flex items-center gap-2 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5">
+            <button 
+              onClick={() => navigate('/pricing')}
+              className="flex items-center gap-2 text-gray-400 hover:text-white w-full p-2 rounded-lg hover:bg-white/5"
+            >
               <Plus size={20} />
               <span>Custom Character</span>
             </button>
@@ -412,7 +521,7 @@ export default function Interview() {
         {/* Header */}
         <header className="flex justify-between items-center p-4 border-b border-white/10 bg-[#010614]/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-white">{interviewer.name}</h1>
+            <h1 className="text-2xl font-semibold text-white">{currentInterviewer?.name}</h1>
             <span className="text-sm text-gray-400">28 January 2025</span>
           </div>
           <div className="flex items-center gap-2">
@@ -421,10 +530,10 @@ export default function Interview() {
               onClick={() => setShowDropdown(!showDropdown)}
             >
               <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                {location.state?.firstName?.[0] || 'U'}
+                {userName[0]}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm text-white">{location.state?.firstName || 'User'}</span>
+                <span className="text-sm text-white">{userName}</span>
                 <span className="text-xs text-gray-400">{userEmail}</span>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -446,11 +555,11 @@ export default function Interview() {
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           <div className="flex flex-col items-center justify-center mb-8">
             <img
-              src={interviewer.avatarUrl}
-              alt={interviewer.name}
+              src={currentInterviewer?.avatarUrl}
+              alt={currentInterviewer?.name}
               className="w-24 h-24 rounded-full mb-2"
             />
-            <h2 className="text-2xl font-semibold text-white">{interviewer.name}</h2>
+            <h2 className="text-2xl font-semibold text-white">{currentInterviewer?.name}</h2>
             <p className="text-gray-400">28 January 2025</p>
           </div>
 
@@ -463,8 +572,8 @@ export default function Interview() {
             >
               {message.sender === 'bot' && (
                 <img
-                  src={interviewer.avatarUrl}
-                  alt={interviewer.name}
+                  src={currentInterviewer?.avatarUrl}
+                  alt={currentInterviewer?.name}
                   className="w-10 h-10 rounded-full"
                 />
               )}
@@ -506,7 +615,7 @@ export default function Interview() {
               <button
                 onClick={toggleRecording}
                 disabled={isLoading}
-                className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
+                className={`absolute right-4 top-1/2 transform -translate-y-1/ 2] ${
                   isRecording ? 'text-red-500' : 'text-gray-400 hover:text-[#22D3EE]'
                 } disabled:opacity-50`}
               >
@@ -526,3 +635,5 @@ export default function Interview() {
     </div>
   );
 }
+
+export default Interview;
