@@ -13,6 +13,11 @@ interface Interviewer {
   description: string;
   avatarUrl: string;
   isPremium?: boolean;
+  gender: 'male' | 'female';
+  personality: {
+    style: string;
+    traits: string[];
+  };
 }
 
 interface UserData {
@@ -25,26 +30,41 @@ const interviewers: Interviewer[] = [
   {
     id: '1',
     name: 'Mr.Micheal A.',
-    title: 'Kind HR from the Big Company',
+    title: 'Senior HR Manager',
     company: 'Big Company',
-    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2014.png?updatedAt=1738210611709'
+    description: 'ผู้เชี่ยวชาญด้าน HR ที่มีประสบการณ์มากกว่า 10 ปี เน้นการสัมภาษณ์แบบเป็นกันเอง แต่ได้ข้อมูลเชิงลึก',
+    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2014.png?updatedAt=1738210611709',
+    gender: 'male',
+    personality: {
+      style: 'Friendly and Professional',
+      traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน']
+    }
   },
   {
     id: '2',
-    name: 'Ms.Sabrinam J.',
-    title: 'Kind HR from the Big Company',
+    name: 'Ms.Sabrina J.',
+    title: 'Lead Talent Acquisition',
     company: 'Big Company',
-    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2016.png?updatedAt=1738210355311'
+    description: 'ผู้เชี่ยวชาญด้านการคัดเลือกบุคลากรไอที มีสไตล์การสัมภาษณ์ที่กระชับ ตรงประเด็น',
+    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2016.png?updatedAt=1738210355311',
+    gender: 'female',
+    personality: {
+      style: 'Direct and Analytical',
+      traits: ['ตรงไปตรงมา', 'มีเหตุผล', 'เน้นการวิเคราะห์']
+    }
   },
   {
     id: '3',
     name: 'Mr.James J.',
-    title: 'Kind HR from the Big Company',
+    title: 'Technical Recruiter',
     company: 'Big Company',
-    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2021.png?updatedAt=1738210355419'
+    description: 'ผู้เชี่ยวชาญด้านการสรรหาบุคลากรสายเทคนิค มีพื้นฐานด้านการพัฒนาซอฟต์แวร์',
+    avatarUrl: 'https://ik.imagekit.io/kf7nqnnezb/Frame%2021.png?updatedAt=1738210355419',
+    gender: 'male',
+    personality: {
+      style: 'Technical and Supportive',
+      traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้']
+    }
   }
 ];
 

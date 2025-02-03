@@ -10,6 +10,21 @@ interface Message {
   timestamp: Date;
 }
 
+interface Interviewer {
+  id: string;
+  name: string;
+  title: string;
+  company: string;
+  description: string;
+  avatarUrl: string;
+  isPremium?: boolean;
+  gender: 'male' | 'female';
+  personality: {
+    style: string;
+    traits: string[];
+  };
+}
+
 interface InterviewSummary {
   overallRating: number;
   categories: {
@@ -109,7 +124,7 @@ export default function Interview() {
       return;
     }
 
-    const initialGreeting = `สวัสดีครับ คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเราครับ ผมชื่อ ${interviewer.name} เป็น HR ของบริษัท ABC วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง Front-End Developer ที่คุณสมัครมาครับ พร้อมเริ่มหรือยังครับ?`;
+    const initialGreeting = `${interviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${interviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${interviewer.name} เป็น ${interviewer.title} ของ${interviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${jobTitle} ที่คุณสมัครมา${interviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${interviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
     
     const initialMessage = {
       id: '1',
