@@ -233,79 +233,111 @@ function Interview() {
     }
   };
 
+  
+
+  const BOTNOI_TTS_API_URL = "https://api-voice.botnoi.ai/openapi/v1/generate_audio"; // ✅ URL ล่าสุดของ Botnoi API
+  const BOTNOI_TTS_TOKEN = "UXpKT1FrUEZKY1FuU2lBUmU0bVI4czN6MkV6MTU2MTg5NA=="; // ✅ ใส่ API Token ใหม่ที่ใช้งานได้
+  
+  const speakWithBotnoiTTS = async (text: string) => {
+    try {
+      console.log("🚀 กำลังส่งข้อความไปที่ Botnoi TTS API...");
+  
+      const response = await fetch(BOTNOI_TTS_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Botnoi-Token": BOTNOI_TTS_TOKEN
+        },
+        body: JSON.stringify({
+          text: text,
+          speaker: "4", // "1" = หญิง | "2" = ชาย
+          volume: 1,
+          speed: 1,
+          type_media: "m4a",
+          save_file: true
+        })
+      });
+  
+      console.log("📥 Response Status:", response.status);
+  
+      if (!response.ok) {
+        throw new Error(`❌ HTTP Error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("✅ API Response:", data);
+  
+      if (data?.audio_url) {
+        console.log("🔊 Playing audio:", data.audio_url);
+        const audio = new Audio(data.audio_url);
+        audio.play();
+      } else {
+        console.error("❌ ไม่พบ audio_url ใน response:", data);
+      }
+    } catch (error) {
+      console.error("🚨 เกิดข้อผิดพลาดในการใช้ TTS:", error);
+    }
+  };
+  
+  // ✅ ปรับให้บอทพูดหลังจากตอบกลับ
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || !currentInterviewer) return;
-
+  
     const userMessage = {
       id: Date.now().toString(),
       text: inputMessage,
       sender: 'user' as const,
       timestamp: new Date(),
     };
-
-    // Update chat history for current interviewer
+  
     setChatHistories(prev => ({
       ...prev,
       [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), userMessage]
     }));
-    
+  
     setInputMessage('');
     setIsLoading(true);
-
+  
     try {
       const messageHistory = currentMessages.map(msg => ({
         role: msg.sender === 'bot' ? 'assistant' : 'user',
         content: msg.text
       }));
-
+  
       messageHistory.push({
         role: 'user',
         content: inputMessage
       });
-
-      const evaluation = await evaluateResponse(
-        inputMessage,
-        currentMessages[currentMessages.length - 1]?.text || '',
-        jobTitle || ''
-      );
-
+  
       const response = await generateResponse(messageHistory, jobTitle || '');
-
-      // Check if this is the last question (10th question)
-      if (currentMessages.filter(m => m.sender === 'bot').length >= 9) {
-        setShowSummary(true);
-      }
-
+  
       const botMessage = {
         id: (Date.now() + 1).toString(),
         text: response,
         sender: 'bot' as const,
         timestamp: new Date(),
       };
-
-      // Update chat history with bot response
+  
       setChatHistories(prev => ({
         ...prev,
         [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), botMessage]
       }));
+  
+      // 🔊 ให้บอทพูดคำตอบที่ได้
+      await speakWithBotnoiTTS(response);
+  
     } catch (error) {
       console.error('Error in chat:', error);
-      const errorMessage = {
-        id: (Date.now() + 1).toString(),
-        text: 'ขออภัยครับ มีปัญหาในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
-        sender: 'bot' as const,
-        timestamp: new Date(),
-      };
-      
-      // Update chat history with error message
-      setChatHistories(prev => ({
-        ...prev,
-        [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), errorMessage]
-      }));
     } finally {
       setIsLoading(false);
     }
   };
+
+
+  
+  
+
+
 
   if (showSummary) {
     return (
@@ -636,3 +668,8 @@ function Interview() {
 }
 
 export default Interview;
+
+
+
+
+
