@@ -393,27 +393,28 @@ function Interview() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 gap-6 mb-8">
               <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">การสื่อสารและความมั่นใจ</h3>
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <span className="text-gray-400 mt-1">•</span>
-                    <p className="text-gray-300 text-sm">มีการเล่าเรื่องหรืออธิบายกระบวนการแก้ปัญหาได้ชัดเจนและเป็นขั้นตอนมากขึ้น</p>
+                <h3 className="text-lg font-semibold text-white mb-4">ข้อที่ควรปรับปรุง</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="text-white font-medium mb-2">การสื่อสารและความมั่นใจ:</h4>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400 mt-1">•</span>
+                      <p className="text-gray-300 text-sm">มีการเล่าเรื่องหรืออธิบายกระบวนการแก้ปัญหาได้ชัดเจนและเป็นขั้นตอนมากขึ้น</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400 mt-1">•</span>
+                      <p className="text-gray-300 text-sm">ใช้โอกาสในการฝึกซ้อมสัมภาษณ์กับคนอื่นเพื่อเพิ่มความมั่นใจ</p>
+                    </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-gray-400 mt-1">•</span>
-                    <p className="text-gray-300 text-sm">ใช้โอกาสในการฝึกซ้อมสัมภาษณ์กับคนอื่นเพื่อเพิ่มความมั่นใจ</p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">การถามคำถาม</h3>
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <span className="text-gray-400 mt-1">•</span>
-                    <p className="text-gray-300 text-sm">เพิ่มคำถามที่สะท้อนถึงความสนใจในบริษัท เช่น โครงการที่กำลังพัฒนา เป้าหมายของทีม หรือโอกาสเติบโตในระยะยาว</p>
+                  <div className="space-y-2">
+                    <h4 className="text-white font-medium mb-2">การถามคำถาม:</h4>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-400 mt-1">•</span>
+                      <p className="text-gray-300 text-sm">เพิ่มคำถามที่สะท้อนถึงความสนใจในบริษัท เช่น โครงการที่กำลังพัฒนา เป้าหมายของทีม หรือโอกาสเติบโตในระยะยาว</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -613,3 +614,4 @@ function Interview() {
 }
 
 export default Interview;
+
