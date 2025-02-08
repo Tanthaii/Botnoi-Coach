@@ -27,7 +27,9 @@ interface Interviewer {
     style: string;
     traits: string[];
   };
+  voiceId: string; // เพิ่มฟิลด์นี้
 }
+
 
 interface InterviewSummary {
   overallRating: number;
@@ -148,8 +150,9 @@ function Interview() {
         gender: 'male',
         personality: {
           style: 'Friendly and Professional',
-          traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน']
-        }
+          traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน'],
+        },
+        voiceId: '1', // ใช้เสียงผู้ชาย 1
       },
       {
         id: '2',
@@ -161,8 +164,9 @@ function Interview() {
         gender: 'female',
         personality: {
           style: 'Direct and Analytical',
-          traits: ['ตรงไปตรงมา', 'มีเหตุผล', 'เน้นการวิเคราะห์']
-        }
+          traits: ['ตรงไปตรงมา', 'มีเหตุผล', 'เน้นการวิเคราะห์'],
+        },
+        voiceId: '2', // ใช้เสียงผู้หญิง 2
       },
       {
         id: '3',
@@ -174,10 +178,12 @@ function Interview() {
         gender: 'male',
         personality: {
           style: 'Technical and Supportive',
-          traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้']
-        }
-      }
+          traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้'],
+        },
+        voiceId: '3', // ใช้เสียงผู้ชาย 3
+      },
     ]);
+    
 
     // Add initial greeting only if no chat history exists
     if (!chatHistories[initialInterviewer.id]) {
@@ -239,45 +245,45 @@ function Interview() {
   const BOTNOI_TTS_TOKEN = "UXpKT1FrUEZKY1FuU2lBUmU0bVI4czN6MkV6MTU2MTg5NA=="; // ✅ ใส่ API Token ใหม่ที่ใช้งานได้
   
   const speakWithBotnoiTTS = async (text: string) => {
-    try {
-      console.log("🚀 กำลังส่งข้อความไปที่ Botnoi TTS API...");
+    if (!currentInterviewer) return;
   
+    try {
       const response = await fetch(BOTNOI_TTS_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Botnoi-Token": BOTNOI_TTS_TOKEN
+          "Botnoi-Token": BOTNOI_TTS_TOKEN,
         },
         body: JSON.stringify({
           text: text,
-          speaker: "4", // "1" = หญิง | "2" = ชาย
+          speaker: currentInterviewer.voiceId || "1",
           volume: 1,
           speed: 1,
           type_media: "m4a",
-          save_file: true
-        })
+          save_file: true,
+        }),
       });
   
-      console.log("📥 Response Status:", response.status);
-  
       if (!response.ok) {
-        throw new Error(`❌ HTTP Error! Status: ${response.status}`);
+        console.error("❌ Response Status:", response.status);
+        throw new Error(`HTTP Error! Status: ${response.status}`);
       }
   
       const data = await response.json();
-      console.log("✅ API Response:", data);
   
-      if (data?.audio_url) {
-        console.log("🔊 Playing audio:", data.audio_url);
+      if (data.audio_url) {
         const audio = new Audio(data.audio_url);
         audio.play();
       } else {
-        console.error("❌ ไม่พบ audio_url ใน response:", data);
+        console.error("❌ Missing audio_url in response:", data);
       }
     } catch (error) {
-      console.error("🚨 เกิดข้อผิดพลาดในการใช้ TTS:", error);
+      console.error("🚨 Error in TTS API:", error);
+      alert("เกิดข้อผิดพลาดในการสร้างเสียง กรุณาลองใหม่อีกครั้ง.");
     }
   };
+  
+  
   
   // ✅ ปรับให้บอทพูดหลังจากตอบกลับ
   const handleSendMessage = async () => {
@@ -668,10 +674,4 @@ function Interview() {
 }
 
 export default Interview;
-
-
-
-
-
-
 

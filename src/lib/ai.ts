@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ✅ ใช้ API Key จาก Environment Variables
-const GEMINI_API_KEY = 'AIzaSyCZ4GECnSPbxDIpNayZXVPE5R8XrOMDeZY';
+const GEMINI_API_KEY = 'AIzaSyCZ4GECnSPbxDIpNayZXVPE5R8XiS89k7pI';
 const TYPHOON_API_KEY = 'sk-l6MuTyQgRWW4TNamkLzhgDAoMZ6PZRPlw5NckabZGChU9L4T';
 const TYPHOON_API_URL = 'https://api.opentyphoon.ai/v1/chat/completions';
 
@@ -168,13 +168,11 @@ export async function generateResponse(
         ...messages,
       ],
       max_tokens: 512,
-      temperature: 0.8, // เพิ่ม temperature เพื่อให้การตอบมีความหลากหลายมากขึ้น
+      temperature: 0.8,
       top_p: 0.95,
       repetition_penalty: 1.05,
       stream: false,
     };
-
-    console.log("📝 Request body:", requestBody);
 
     const response = await fetch(TYPHOON_API_URL, {
       method: "POST",
@@ -185,32 +183,20 @@ export async function generateResponse(
       body: JSON.stringify(requestBody),
     });
 
-    const responseText = await response.text();
-    console.log("📩 Raw API response:", responseText);
-
     if (!response.ok) {
-      console.error("❌ API Error:", response.status, response.statusText, responseText);
+      console.error("❌ API Error:", response.status, response.statusText);
       return API_ERROR_MESSAGES.CONNECTION_ERROR;
     }
 
-    let data: TyphoonResponse;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error("❌ JSON Parsing Error:", e, responseText);
-      return API_ERROR_MESSAGES.INVALID_RESPONSE;
-    }
-
+    const data = await response.json();
     if (!data?.choices?.[0]?.message?.content) {
       console.error("⚠️ Invalid API response format:", data);
       return API_ERROR_MESSAGES.INVALID_RESPONSE;
     }
 
-    // ✅ เพิ่ม conversational cue ถ้าเป็นการตอบกลับ
     const aiResponse = data.choices[0].message.content.trim();
     const formattedResponse = `\n${conversationalContext}${aiResponse}\n\n`;
 
-    console.log("✅ Received response from OpenTyphoon API:", formattedResponse);
     return formattedResponse;
   } catch (error) {
     console.error("❌ Error generating response:", error);
@@ -219,7 +205,7 @@ export async function generateResponse(
 }
 
 /**
- * ✅ ใช้ Gemini AI เพื่อประเมินคำตอบของผู้สมัคร (ปรับให้ AI ประเมินตาม Job Title ที่กำหนด)
+ * ✅ ใช้ Gemini AI เพื่อประเมินคำตอบของผู้สมัคร
  */
 export async function evaluateResponse(
   userResponse: string,
@@ -234,41 +220,57 @@ export async function evaluateResponse(
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
+    // สร้าง prompt ที่เฉพาะเจาะจงกับตำแหน่งงาน
     const prompt = `
-    คุณเป็นผู้เชี่ยวชาญด้าน HR กำลังประเมินคำตอบของผู้สมัครสำหรับตำแหน่ง "${jobTitle}"
+    คุณเป็นผู้เชี่ยวชาญด้าน HR และการสรรหาบุคลากร กำลังประเมินคำตอบของผู้สมัครสำหรับตำแหน่ง "${jobTitle}"
 
-    🔹 คำถาม / บริบท: ${context}  
-    🔹 คำตอบของผู้สมัคร: ${userResponse}  
+    ข้อมูลการสัมภาษณ์:
+    🔹 คำถาม: ${context}
+    🔹 คำตอบของผู้สมัคร: ${userResponse}
 
-    โปรดวิเคราะห์คำตอบโดยใช้เกณฑ์ต่อไปนี้:
-    1️⃣ ความเกี่ยวข้องของคำตอบกับตำแหน่ง "${jobTitle}"  
-    2️⃣ ความรู้ทางเทคนิคที่เกี่ยวข้องกับตำแหน่ง "${jobTitle}"  
-    3️⃣ ความชัดเจนของการสื่อสาร  
-    4️⃣ ทัศนคติทางอาชีพ  
+    กรุณาวิเคราะห์คำตอบโดยพิจารณาปัจจัยต่อไปนี้:
 
-    กรุณาให้ข้อเสนอแนะเป็นภาษาไทย และแนะนำคำถามติดตามผลที่เหมาะสม
+    1️⃣ ความเกี่ยวข้องกับตำแหน่งงาน (Job Relevance)
+    - ประเมินว่าคำตอบสอดคล้องกับความต้องการและความรับผิดชอบของตำแหน่ง ${jobTitle} หรือไม่
+    - พิจารณาทักษะและประสบการณ์ที่เกี่ยวข้องกับงาน
+
+    2️⃣ ความรู้และความเชี่ยวชาญ (Technical Expertise)
+    - วิเคราะห์ความเข้าใจในเทคโนโลยีและทักษะที่จำเป็นสำหรับตำแหน่ง ${jobTitle}
+    - ประเมินความลึกซึ้งของความรู้ในด้านที่เกี่ยวข้อง
+
+    3️⃣ ทักษะการสื่อสาร (Communication Skills)
+    - ประเมินความชัดเจนและความกระชับในการอธิบาย
+    - พิจารณาการใช้ภาษาทางเทคนิคที่เหมาะสม
+
+    4️⃣ การแก้ปัญหาและการตัดสินใจ (Problem Solving)
+    - วิเคราะห์วิธีคิดและแนวทางการแก้ปัญหา
+    - ประเมินความสามารถในการตัดสินใจ
+
+    5️⃣ ทัศนคติและการเรียนรู้ (Attitude & Learning)
+    - ประเมินทัศนคติต่องานและการพัฒนาตนเอง
+    - พิจารณาความกระตือรือร้นและความใฝ่เรียนรู้
+
+    กรุณาให้:
+    1. คะแนนแต่ละด้าน (1-5)
+    2. จุดเด่นของคำตอบ
+    3. สิ่งที่ควรปรับปรุง
+    4. คำแนะนำสำหรับการพัฒนา
+    5. คำถามติดตามที่น่าสนใจ (Follow-up Questions)
+
+    โปรดตอบเป็นภาษาไทย และจัดรูปแบบให้อ่านง่าย
     `;
-
-    console.log(`📡 Sending request to Gemini API for job: ${jobTitle}`);
 
     const result = await model.generateContent(prompt);
     if (!result?.response) {
-      console.error("⚠️ Invalid Gemini API response");
       return API_ERROR_MESSAGES.INVALID_RESPONSE;
     }
 
-    const response = await result.response;
-    const text = response.text();
-    if (!text) {
-      console.error("⚠️ Empty response from Gemini API");
+    const response = result.response.text();
+    if (!response) {
       return API_ERROR_MESSAGES.INVALID_RESPONSE;
     }
 
-    // ✅ เพิ่มการเว้นบรรทัดระหว่างคำตอบของ AI และคำถามถัดไป
-    const formattedResponse = text.trim() + "\n\n";
-
-    console.log("✅ Received evaluation from Gemini API:", formattedResponse);
-    return formattedResponse;
+    return response.trim() + "\n\n";
   } catch (error) {
     console.error("❌ Error evaluating response:", error);
     return API_ERROR_MESSAGES.GENERAL_ERROR;
