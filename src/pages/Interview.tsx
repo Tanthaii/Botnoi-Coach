@@ -27,9 +27,8 @@ interface Interviewer {
     style: string;
     traits: string[];
   };
-  voiceId: string; // เพิ่มฟิลด์นี้
+  voiceId: string;
 }
-
 
 interface InterviewSummary {
   overallRating: number;
@@ -65,6 +64,8 @@ function Interview() {
   const [currentInterviewer, setCurrentInterviewer] = useState<Interviewer | null>(null);
   const [availableInterviewers, setAvailableInterviewers] = useState<Interviewer[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [questionCount, setQuestionCount] = useState(0);
+  const [showEvaluation, setShowEvaluation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
@@ -126,7 +127,6 @@ function Interview() {
     ]
   });
 
-  // Get current chat messages
   const currentMessages = currentInterviewer 
     ? chatHistories[currentInterviewer.id] || []
     : [];
@@ -152,7 +152,7 @@ function Interview() {
           style: 'Friendly and Professional',
           traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน'],
         },
-        voiceId: '1', // ใช้เสียงผู้ชาย 1
+        voiceId: '1',
       },
       {
         id: '2',
@@ -166,7 +166,7 @@ function Interview() {
           style: 'Direct and Analytical',
           traits: ['ตรงไปตรงมา', 'มีเหตุผล', 'เน้นการวิเคราะห์'],
         },
-        voiceId: '2', // ใช้เสียงผู้หญิง 2
+        voiceId: '2',
       },
       {
         id: '3',
@@ -180,12 +180,10 @@ function Interview() {
           style: 'Technical and Supportive',
           traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้'],
         },
-        voiceId: '3', // ใช้เสียงผู้ชาย 3
+        voiceId: '3',
       },
     ]);
-    
 
-    // Add initial greeting only if no chat history exists
     if (!chatHistories[initialInterviewer.id]) {
       const initialGreeting = `${initialInterviewer.gender === 'male' ? 'สวัสดีครับ' : 'สวัสดีค่ะ'} คุณ${userName} ขอบคุณที่สละเวลามาสัมภาษณ์กับเรา${initialInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} ${initialInterviewer.gender === 'male' ? 'ผม' : 'ดิฉัน'}ชื่อ ${initialInterviewer.name} เป็น ${initialInterviewer.title} ของ${initialInterviewer.company} วันนี้เราจะพูดคุยเกี่ยวกับตำแหน่ง ${location.state.jobTitle} ที่คุณสมัครมา${initialInterviewer.gender === 'male' ? 'ครับ' : 'ค่ะ'} พร้อมเริ่มหรือยัง${initialInterviewer.gender === 'male' ? 'ครับ' : 'คะ'}?`;
       
@@ -212,7 +210,6 @@ function Interview() {
   const handleSwitchInterviewer = async (newInterviewer: Interviewer) => {
     if (newInterviewer.id === currentInterviewer?.id) return;
 
-    // เก็บประวัติการแชทของผู้สัมภาษณ์คนปัจจุบันไว้
     if (currentInterviewer) {
       setChatHistories(prev => ({
         ...prev,
@@ -220,10 +217,9 @@ function Interview() {
       }));
     }
 
-    // เปลี่ยนไปใช้ผู้สัมภาษณ์คนใหม่
     setCurrentInterviewer(newInterviewer);
+    setQuestionCount(0); // Reset question count for new interviewer
 
-    // ถ้ายังไม่มีประวัติการแชทกับผู้สัมภาษณ์คนใหม่ ให้สร้างข้อความทักทาย
     if (!chatHistories[newInterviewer.id]) {
       const transitionMessage = {
         id: Date.now().toString(),
@@ -239,10 +235,8 @@ function Interview() {
     }
   };
 
-  
-
-  const BOTNOI_TTS_API_URL = "https://api-voice.botnoi.ai/openapi/v1/generate_audio"; // ✅ URL ล่าสุดของ Botnoi API
-  const BOTNOI_TTS_TOKEN = "UXpKT1FrUEZKY1FuU2lBUmU0bVI4czN6MkV6MTU2MTg5NA=="; // ✅ ใส่ API Token ใหม่ที่ใช้งานได้
+  const BOTNOI_TTS_API_URL = "https://api-voice.botnoi.ai/openapi/v1/generate_audio";
+  const BOTNOI_TTS_TOKEN = "UXpKT1FrUEZKY1FuU2lBUmU0bVI4czN6MkV6MTU2MTg5NA==";
   
   const speakWithBotnoiTTS = async (text: string) => {
     if (!currentInterviewer) return;
@@ -282,10 +276,7 @@ function Interview() {
       alert("เกิดข้อผิดพลาดในการสร้างเสียง กรุณาลองใหม่อีกครั้ง.");
     }
   };
-  
-  
-  
-  // ✅ ปรับให้บอทพูดหลังจากตอบกลับ
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading || !currentInterviewer) return;
   
@@ -316,6 +307,19 @@ function Interview() {
       });
   
       const response = await generateResponse(messageHistory, jobTitle || '');
+      
+      // Count only bot messages that end with a question mark
+      const isQuestion = response.trim().endsWith('?');
+      if (isQuestion) {
+        const newQuestionCount = questionCount + 1;
+        setQuestionCount(newQuestionCount);
+        
+        // Show evaluation after 10 questions
+        if (newQuestionCount >= 10) {
+          setShowEvaluation(true);
+          return; // Stop here to prevent adding more messages
+        }
+      }
   
       const botMessage = {
         id: (Date.now() + 1).toString(),
@@ -329,7 +333,6 @@ function Interview() {
         [currentInterviewer.id]: [...(prev[currentInterviewer.id] || []), botMessage]
       }));
   
-      // 🔊 ให้บอทพูดคำตอบที่ได้
       await speakWithBotnoiTTS(response);
   
     } catch (error) {
@@ -339,16 +342,9 @@ function Interview() {
     }
   };
 
-
-  
-  
-
-
-
-  if (showSummary) {
+  if (showEvaluation) {
     return (
       <div className="flex h-screen bg-gradient-to-b from-[#010614] to-[#083178]">
-        {/* Sidebar */}
         <div className="w-64 bg-[#010614]/50 backdrop-blur-sm border-r border-white/10">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-8">
@@ -372,10 +368,8 @@ function Interview() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-white mb-4">
                 ผลการสัมภาษณ์
@@ -387,97 +381,44 @@ function Interview() {
                     ดีเยี่ยม!
                   </h2>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
+                    {[1, 2, 3, 4].map((star) => (
                       <Star
                         key={star}
-                        className={`w-6 h-6 ${
-                          star <= summary.overallRating 
-                            ? 'text-yellow-400 fill-yellow-400' 
-                            : 'text-gray-400'
-                        }`}
+                        className="w-6 h-6 text-yellow-400 fill-yellow-400"
                       />
                     ))}
+                    <Star className="w-6 h-6 text-gray-400" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              {Object.entries(summary.categories).map(([category, data]) => (
-                <div
-                  key={category}
-                  className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-white capitalize">
-                      {category.replace(/([A-Z])/g, ' $1').trim()}
-                    </h3>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= data.score 
-                              ? 'text-yellow-400 fill-yellow-400' 
-                              : 'text-gray-400'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {data.feedback.map((item, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-gray-400 mt-1">•</span>
-                        <p className="text-gray-300 text-sm">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Strengths & Improvements */}
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">จุดเด่น</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">การสื่อสารและความมั่นใจ</h3>
                 <div className="space-y-2">
-                  {summary.strengths.map((strength, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <span className="text-emerald-400 mt-1">+</span>
-                      <p className="text-gray-300 text-sm">{strength}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">สิ่งที่ควรพัฒนา</h3>
-                <div className="space-y-2">
-                  {summary.improvements.map((improvement, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <span className="text-rose-400 mt-1">!</span>
-                      <p className="text-gray-300 text-sm">{improvement}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Next Steps */}
-            <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-white mb-4">ขั้นตอนต่อไป</h3>
-              <div className="space-y-2">
-                {summary.nextSteps.map((step, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-[#22D3EE] mt-1">→</span>
-                    <p className="text-gray-300 text-sm">{step}</p>
+                  <div className="flex items-start gap-2">
+                    <span className="text-gray-400 mt-1">•</span>
+                    <p className="text-gray-300 text-sm">มีการเล่าเรื่องหรืออธิบายกระบวนการแก้ปัญหาได้ชัดเจนและเป็นขั้นตอนมากขึ้น</p>
                   </div>
-                ))}
+                  <div className="flex items-start gap-2">
+                    <span className="text-gray-400 mt-1">•</span>
+                    <p className="text-gray-300 text-sm">ใช้โอกาสในการฝึกซ้อมสัมภาษณ์กับคนอื่นเพื่อเพิ่มความมั่นใจ</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#010614]/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">การถามคำถาม</h3>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-gray-400 mt-1">•</span>
+                    <p className="text-gray-300 text-sm">เพิ่มคำถามที่สะท้อนถึงความสนใจในบริษัท เช่น โครงการที่กำลังพัฒนา เป้าหมายของทีม หรือโอกาสเติบโตในระยะยาว</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => navigate('/choose-interviewer')}
@@ -486,7 +427,10 @@ function Interview() {
                 สำเร็จ
               </button>
               <button
-                onClick={() => navigate('/interview')}
+                onClick={() => {
+                  setShowEvaluation(false);
+                  setQuestionCount(0);
+                }}
                 className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-white font-semibold hover:bg-white/10 transition-colors"
               >
                 สัมภาษณ์อีกครั้ง
@@ -500,7 +444,6 @@ function Interview() {
 
   return (
     <div className="flex h-screen bg-gradient-to-b from-[#010614] to-[#083178]">
-      {/* Sidebar */}
       <div className="w-64 bg-[#010614]/50 backdrop-blur-sm border-r border-white/10">
         <div className="p-4">
           <div className="flex items-center gap-2 mb-8">
@@ -553,9 +496,7 @@ function Interview() {
         </div>
       </div>
 
-      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <header className="flex justify-between items-center p-4 border-b border-white/10 bg-[#010614]/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-white">{currentInterviewer?.name}</h1>
@@ -588,7 +529,6 @@ function Interview() {
           </div>
         </header>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           <div className="flex flex-col items-center justify-center mb-8">
             <img
@@ -636,7 +576,6 @@ function Interview() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-4 border-t border-white/10 bg-[#010614]/50 backdrop-blur-sm">
           <div className="flex items-center gap-2 max-w-4xl mx-auto">
             <div className="flex-1 relative">
@@ -674,4 +613,3 @@ function Interview() {
 }
 
 export default Interview;
-
