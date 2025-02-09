@@ -152,7 +152,7 @@ function Interview() {
           style: 'Friendly and Professional',
           traits: ['เป็นกันเอง', 'ใส่ใจรายละเอียด', 'มีอารมณ์ขัน'],
         },
-        voiceId: '1',
+        voiceId: '8',
       },
       {
         id: '2',
@@ -180,7 +180,7 @@ function Interview() {
           style: 'Technical and Supportive',
           traits: ['เข้าใจด้านเทคนิค', 'ให้คำแนะนำที่เป็นประโยชน์', 'สนับสนุนการเรียนรู้'],
         },
-        voiceId: '3',
+        voiceId: '5',
       },
     ]);
 
@@ -614,4 +614,8 @@ function Interview() {
 }
 
 export default Interview;
+
+
+
+
 
